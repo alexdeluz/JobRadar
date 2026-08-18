@@ -1,13 +1,19 @@
 import { createDb } from './db/index.js';
 import { runScrape } from './pipeline/run.js';
 import { createGetonbrdSource } from './scrapers/getonbrd.js';
+import { createChiletrabajosSource } from './scrapers/chiletrabajos.js';
+import { createComputrabajoSource } from './scrapers/computrabajo.js';
 import { createClassifier } from './llm/classifier.js';
 import { config } from './config.js';
 
 const db = createDb(config.dbPath);
 const summary = await runScrape({
   db,
-  sources: [createGetonbrdSource({ maxPages: config.getonbrd.maxPages })],
+  sources: [
+    createGetonbrdSource({ maxPages: config.getonbrd.maxPages }),
+    createChiletrabajosSource(),
+    createComputrabajoSource(),
+  ],
   classify: createClassifier(),
   log: (message) => console.log(message),
 });
