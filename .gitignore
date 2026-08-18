@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.env
+data/jobradar.db
+data/jobradar.db-*
+data/*.pdf
+*.tsbuildinfo
+.DS_Store

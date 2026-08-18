@@ -1,0 +1,30 @@
+{
+  "name": "jobradar",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Radar personal de ofertas laborales en portales chilenos: scraping, clasificación con LLM y postulación semi-automática",
+  "author": "Alejandro De Luz Levine",
+  "license": "MIT",
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r typecheck",
+    "scrape": "pnpm --filter @jobradar/api scrape",
+    "dev": "pnpm --parallel --filter @jobradar/api --filter @jobradar/web dev"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}
