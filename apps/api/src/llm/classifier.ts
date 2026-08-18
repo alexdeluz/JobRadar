@@ -84,7 +84,8 @@ export function createClassifier(): (job: NormalizedJob) => Promise<Classificati
   return (job) => {
     if (parse === null) {
       const client = new Anthropic();
-      parse = (request) => client.messages.parse(request as Parameters<typeof client.messages.parse>[0]);
+      parse = (request) =>
+        client.messages.parse(request as Parameters<typeof client.messages.parse>[0]);
       profile = readFileSync(config.profilePath, 'utf-8');
     }
     return classifyWith(parse, profile!, job);

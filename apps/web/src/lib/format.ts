@@ -7,7 +7,8 @@ export function formatSalary(
   currency: string | null,
 ): string | null {
   const cur = currency ?? '';
-  if (min !== null && max !== null) return `${miles.format(min)}–${miles.format(max)} ${cur}`.trim();
+  if (min !== null && max !== null)
+    return `${miles.format(min)}–${miles.format(max)} ${cur}`.trim();
   if (min !== null) return `desde ${miles.format(min)} ${cur}`.trim();
   if (max !== null) return `hasta ${miles.format(max)} ${cur}`.trim();
   return null;

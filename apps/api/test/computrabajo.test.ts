@@ -1,9 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import {
-  parseComputrabajoDetail,
-  parseComputrabajoListing,
-} from '../src/scrapers/computrabajo.js';
+import { parseComputrabajoDetail, parseComputrabajoListing } from '../src/scrapers/computrabajo.js';
 
 const listingHtml = readFileSync(
   new URL('./fixtures/computrabajo-search.html', import.meta.url),

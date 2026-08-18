@@ -40,6 +40,8 @@ export function generateCoverLetter(job: NormalizedJob): Promise<string> {
   const client = new Anthropic();
   const profile = readFileSync(config.profilePath, 'utf-8');
   const create: CreateFn = (request) =>
-    client.messages.create(request as Parameters<typeof client.messages.create>[0]) as ReturnType<CreateFn>;
+    client.messages.create(
+      request as Parameters<typeof client.messages.create>[0],
+    ) as ReturnType<CreateFn>;
   return generateCoverLetterWith(create, profile, job);
 }

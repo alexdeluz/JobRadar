@@ -93,8 +93,7 @@ describe('runScrape', () => {
     await runScrape({
       db,
       sources: [failing, source('getonbrd', [job('Desarrollador C#', '.NET', 'dev-1')])],
-      classify: () =>
-        Promise.resolve({ category: 'dotnet', score: 70, reasons: [], redFlags: [] }),
+      classify: () => Promise.resolve({ category: 'dotnet', score: 70, reasons: [], redFlags: [] }),
     });
     expect(listJobs(db)).toHaveLength(1);
     const runs = listRuns(db);

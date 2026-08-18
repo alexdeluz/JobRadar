@@ -83,7 +83,9 @@ export default function App() {
         ))}
       </nav>
 
-      {error !== null && <p className="empty">No pude cargar datos: {error}. ¿Está corriendo la API?</p>}
+      {error !== null && (
+        <p className="empty">No pude cargar datos: {error}. ¿Está corriendo la API?</p>
+      )}
 
       {tab === 'runs' ? (
         <RunsTable runs={runs} />

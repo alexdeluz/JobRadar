@@ -1,9 +1,4 @@
-import type {
-  Classification,
-  JobStatus,
-  NormalizedJob,
-  SourceName,
-} from '@jobradar/core';
+import type { Classification, JobStatus, NormalizedJob, SourceName } from '@jobradar/core';
 import type { JobRadarDb } from './index.js';
 
 export interface StoredJob extends NormalizedJob {
@@ -215,9 +210,7 @@ export function recordRun(db: JobRadarDb, run: RunRecord): void {
 }
 
 export function listRuns(db: JobRadarDb, limit = 50): (RunRecord & { id: number })[] {
-  const rows = db
-    .prepare('SELECT * FROM runs ORDER BY id DESC LIMIT ?')
-    .all(limit) as {
+  const rows = db.prepare('SELECT * FROM runs ORDER BY id DESC LIMIT ?').all(limit) as {
     id: number;
     source: SourceName;
     started_at: string;

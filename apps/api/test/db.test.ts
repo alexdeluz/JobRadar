@@ -67,7 +67,10 @@ describe('repositorio de jobs', () => {
   });
 
   it('ofertas distintas con distinto fingerprint se insertan ambas', () => {
-    upsertJobs(db, [makeJob(), makeJob({ sourceId: 'job-2', title: 'QA Automation', url: 'https://example.com/job-2' })]);
+    upsertJobs(db, [
+      makeJob(),
+      makeJob({ sourceId: 'job-2', title: 'QA Automation', url: 'https://example.com/job-2' }),
+    ]);
     expect(listJobs(db)).toHaveLength(2);
   });
 

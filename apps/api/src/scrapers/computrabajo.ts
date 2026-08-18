@@ -72,7 +72,9 @@ export function createComputrabajoSource(
         const url = `${BASE}/trabajo-de-desarrollador${page > 1 ? `?p=${page}` : ''}`;
         const items = parseComputrabajoListing(await fetchPage(url));
         if (items.length === 0 && page === 1) {
-          throw new Error('Listado de Computrabajo sin article.box_offer (¿cambió el HTML o bloqueó la IP?)');
+          throw new Error(
+            'Listado de Computrabajo sin article.box_offer (¿cambió el HTML o bloqueó la IP?)',
+          );
         }
         for (const item of items) {
           if (!applyRules({ title: item.title, description: '' }).passed) continue;

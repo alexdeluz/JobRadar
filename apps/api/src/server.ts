@@ -69,8 +69,34 @@ export async function buildServer(db: JobRadarDb): Promise<FastifyInstance> {
 
 // Arranque directo (tsx src/server.ts); en tests solo se importa buildServer.
 if (process.argv[1]?.endsWith('server.ts')) {
+  const { runScrape } = await import('./pipeline/run.js');
+  const { needsScrape } = await import('./pipeline/schedule.js');
+  const { createSources } = await import('./sources.js');
+  const { createClassifier } = await import('./llm/classifier.js');
+
   const db = createDb(config.dbPath);
   const app = await buildServer(db);
   await app.listen({ port: config.api.port });
   console.log(`API en http://localhost:${config.api.port}`);
+
+  // Catch-up: al arrancar y cada hora, scrapea si el último barrido es viejo.
+  let scraping = false;
+  const maybeScrape = async () => {
+    if (scraping || !needsScrape(listRuns(db, 1)[0]?.finishedAt ?? null)) return;
+    scraping = true;
+    try {
+      await runScrape({
+        db,
+        sources: createSources(),
+        classify: createClassifier(),
+        log: (message) => console.log(message),
+      });
+    } catch (err) {
+      console.error('scrape falló:', err);
+    } finally {
+      scraping = false;
+    }
+  };
+  void maybeScrape();
+  setInterval(() => void maybeScrape(), 3_600_000);
 }

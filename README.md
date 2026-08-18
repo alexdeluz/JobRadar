@@ -1,0 +1,52 @@
+# Job Radar
+
+Radar personal de ofertas laborales para portales chilenos: scrapea, deduplica, clasifica contra mi perfil con un LLM y me deja postular en un clic con carta de presentación generada.
+
+**Stack**: TypeScript estricto en monorepo pnpm — Node 22+ (Fastify, better-sqlite3, cheerio, SDK de Anthropic) + React 19/Vite. Tests con Vitest y fixtures reales de cada portal.
+
+## Cómo funciona
+
+```
+fuentes ─▶ normalize ─▶ dedup ─▶ reglas keywords ─▶ Claude Haiku ─▶ SQLite ─▶ dashboard
+```
+
+- **Fuentes v1**: [Get on Board](https://www.getonbrd.com/api-doc.html) (API JSON oficial), Chiletrabajos y Computrabajo (HTML server-rendered con cheerio, throttle y user-agent de navegador; el detalle se baja solo para ofertas que pasan el pre-filtro).
+- **Dedup en dos niveles**: `(source, source_id)` para re-scrapes y un _fingerprint_ de título+empresa normalizados para la misma oferta publicada en varios portales (queda una sola entrada con links extra).
+- **Clasificación híbrida**: un filtro determinista por keywords descarta lo obviamente irrelevante gratis; Claude Haiku clasifica el resto en `dotnet` (mi stack fuerte) o `js_transition` (roles JS/TS accesibles en transición), con score 0-100, razones y red flags.
+- **Semi-auto apply**: "Preparar postulación" genera una carta adaptada a la oferta desde `data/profile.md`, marca la oferta y abre el formulario del portal — la envío yo. Nada postula solo.
+- **Aislamiento de fallas**: si un portal cambia su HTML o bloquea, ese run queda registrado con error y el resto continúa; el dashboard tiene una vista de runs para detectarlo.
+
+## Uso
+
+```bash
+pnpm install
+echo "ANTHROPIC_API_KEY=sk-..." > .env   # opcional: sin key, las ofertas quedan pendientes de clasificar
+pnpm scrape        # barrido manual de las 3 fuentes
+pnpm dev           # API en :4310 + dashboard en :5173
+pnpm test          # suite completa
+```
+
+Programar el barrido diario en Windows (9:30 + al iniciar sesión, con catch-up si el PC estaba apagado):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\register-task.ps1
+```
+
+La API también hace catch-up sola: al arrancar y cada hora scrapea si el último barrido tiene más de 20 horas.
+
+## Estructura
+
+```
+packages/core   dominio puro: tipos, fingerprint de dedup, reglas de keywords (sin I/O)
+apps/api        Fastify + SQLite: scrapers, pipeline, clasificador LLM, REST API
+apps/web        React + Vite: bandejas por categoría, señal de radar por score, runs
+data/           CVs, profile.md (perfil para el LLM) y jobradar.db (gitignored)
+```
+
+Los parsers se testean contra fixtures HTML/JSON reales guardadas en `apps/api/test/fixtures/` — la suite nunca golpea la red.
+
+## Decisiones
+
+- **Corre local, no en la nube**: Computrabajo bloquea IPs de datacenter (verificado); desde IP residencial con throttle bajo funciona. Las ofertas viven días o semanas, así que un barrido diario no pierde nada.
+- **Fase 2**: Trabajando.com (vía sitemap), RemoteOK/WeWorkRemotely (remoto LATAM), Laborum (requiere headless), prefill de formularios con Playwright.
+- **Descartados**: LinkedIn e Indeed (anti-bot agresivo), BNE (ClaveÚnica), El Mercurio (poco volumen tech).

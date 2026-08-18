@@ -37,7 +37,7 @@ describe('API REST', () => {
     seed(db, 'Desarrollador .NET', 'a');
     const res = await app.inject({ method: 'GET', url: '/api/jobs' });
     expect(res.statusCode).toBe(200);
-    const body = res.json() as { jobs: { title: string; status: string }[] };
+    const body = res.json<{ jobs: { title: string; status: string }[] }>();
     expect(body.jobs).toHaveLength(1);
     expect(body.jobs[0]!.title).toBe('Desarrollador .NET');
   });
@@ -47,7 +47,7 @@ describe('API REST', () => {
     seed(db, 'Otro rol', 'b');
     setClassification(db, id, { category: 'dotnet', score: 90, reasons: [], redFlags: [] });
     const res = await app.inject({ method: 'GET', url: '/api/jobs?category=dotnet' });
-    const body = res.json() as { jobs: { id: number }[] };
+    const body = res.json<{ jobs: { id: number }[] }>();
     expect(body.jobs).toHaveLength(1);
     expect(body.jobs[0]!.id).toBe(id);
   });
@@ -60,9 +60,9 @@ describe('API REST', () => {
       payload: { status: 'applied' },
     });
     expect(res.statusCode).toBe(200);
-    const jobs = (await app.inject({ method: 'GET', url: '/api/jobs?status=applied' })).json() as {
+    const jobs = (await app.inject({ method: 'GET', url: '/api/jobs?status=applied' })).json<{
       jobs: unknown[];
-    };
+    }>();
     expect(jobs.jobs).toHaveLength(1);
   });
 
@@ -79,6 +79,6 @@ describe('API REST', () => {
   it('GET /api/runs devuelve el historial de barridos', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/runs' });
     expect(res.statusCode).toBe(200);
-    expect((res.json() as { runs: unknown[] }).runs).toEqual([]);
+    expect(res.json<{ runs: unknown[] }>().runs).toEqual([]);
   });
 });

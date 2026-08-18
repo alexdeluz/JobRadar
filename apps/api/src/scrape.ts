@@ -1,19 +1,13 @@
 import { createDb } from './db/index.js';
 import { runScrape } from './pipeline/run.js';
-import { createGetonbrdSource } from './scrapers/getonbrd.js';
-import { createChiletrabajosSource } from './scrapers/chiletrabajos.js';
-import { createComputrabajoSource } from './scrapers/computrabajo.js';
+import { createSources } from './sources.js';
 import { createClassifier } from './llm/classifier.js';
 import { config } from './config.js';
 
 const db = createDb(config.dbPath);
 const summary = await runScrape({
   db,
-  sources: [
-    createGetonbrdSource({ maxPages: config.getonbrd.maxPages }),
-    createChiletrabajosSource(),
-    createComputrabajoSource(),
-  ],
+  sources: createSources(),
   classify: createClassifier(),
   log: (message) => console.log(message),
 });
@@ -24,5 +18,7 @@ for (const s of summary.perSource) {
     `  ${s.source}: ${s.fetched} bajadas, ${s.inserted} nuevas${s.error !== null ? `, ERROR: ${s.error}` : ''}`,
   );
 }
-console.log(`  clasificadas: ${summary.classified}, descartadas por reglas: ${summary.discardedByRules}`);
+console.log(
+  `  clasificadas: ${summary.classified}, descartadas por reglas: ${summary.discardedByRules}`,
+);
 db.close();

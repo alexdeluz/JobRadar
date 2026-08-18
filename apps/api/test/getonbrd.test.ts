@@ -12,7 +12,9 @@ describe('normalizeGetonbrdJob', () => {
   it('mapea los campos básicos de la API al modelo común', () => {
     const job = normalizeGetonbrdJob(first);
     expect(job.source).toBe('getonbrd');
-    expect(job.sourceId).toBe('senior-software-engineer-java-angular-english-23people-santiago-e811');
+    expect(job.sourceId).toBe(
+      'senior-software-engineer-java-angular-english-23people-santiago-e811',
+    );
     expect(job.title).toBe('Senior Software Developer Java/Spring Boot (English)');
     expect(job.company).toBe('23people');
     expect(job.url).toBe(

@@ -32,7 +32,14 @@ export function parseChiletrabajosListing(html: string): ChiletrabajosListingIte
     const sourceId = /-(\d+)$/.exec(url)?.[1];
     if (sourceId === undefined) return;
     const meta = $(card).find('h3.meta').first();
-    const company = meta.clone().children().remove().end().text().replace(/[,\s]+$/g, '').trim();
+    const company = meta
+      .clone()
+      .children()
+      .remove()
+      .end()
+      .text()
+      .replace(/[,\s]+$/g, '')
+      .trim();
     const location = meta.find('a').first().text().trim();
     const snippet = $(card).find('p.description').clone().find('a').remove().end().text().trim();
     items.push({

@@ -13,14 +13,19 @@ describe('applyRules', () => {
   });
 
   it('deja pasar una oferta cuyo stack solo aparece en la descripción', () => {
-    const verdict = applyRules(job('Ingeniero de Software', 'Requisitos: React, Node.js y TypeScript'));
+    const verdict = applyRules(
+      job('Ingeniero de Software', 'Requisitos: React, Node.js y TypeScript'),
+    );
     expect(verdict.passed).toBe(true);
     expect(verdict.matched).toEqual(expect.arrayContaining(['react', 'node']));
   });
 
   it('descarta ofertas sin ningún keyword técnico', () => {
     const verdict = applyRules(
-      job('Vendedor Terreno', 'Buscamos vendedor para retail con experiencia en atención al cliente'),
+      job(
+        'Vendedor Terreno',
+        'Buscamos vendedor para retail con experiencia en atención al cliente',
+      ),
     );
     expect(verdict.passed).toBe(false);
     expect(verdict.matched).toEqual([]);
@@ -38,7 +43,9 @@ describe('applyRules', () => {
   });
 
   it('no reporta el mismo keyword dos veces aunque aparezca repetido', () => {
-    const verdict = applyRules(job('Desarrollador C#', 'Dominio de C# avanzado. C# es excluyente.'));
+    const verdict = applyRules(
+      job('Desarrollador C#', 'Dominio de C# avanzado. C# es excluyente.'),
+    );
     expect(verdict.matched.filter((k) => k === 'c#')).toHaveLength(1);
   });
 });

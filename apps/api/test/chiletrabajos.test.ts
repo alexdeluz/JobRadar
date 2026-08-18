@@ -24,7 +24,9 @@ describe('parseChiletrabajosListing', () => {
   it('extrae título, url, id numérico y empresa de cada card', () => {
     const first = items[0]!;
     expect(first.title).toBe('TECNICO/AUXILIAR DE FARMACIA');
-    expect(first.url).toBe('https://www.chiletrabajos.cl/trabajo/tecnico-auxiliar-de-farmacia-3827502');
+    expect(first.url).toBe(
+      'https://www.chiletrabajos.cl/trabajo/tecnico-auxiliar-de-farmacia-3827502',
+    );
     expect(first.sourceId).toBe('3827502');
     expect(first.company).toBe('Triodo spa');
     expect(first.location).toBe('Santiago');

@@ -1,6 +1,7 @@
 {
   "name": "jobradar",
   "private": true,
+  "type": "module",
   "version": "0.1.0",
   "description": "Radar personal de ofertas laborales en portales chilenos: scraping, clasificación con LLM y postulación semi-automática",
   "author": "Alejandro De Luz Levine",
