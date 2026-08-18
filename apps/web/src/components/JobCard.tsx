@@ -30,15 +30,15 @@ export function JobCard({ job, onChanged }: { job: Job; onChanged: () => void })
     }
   }
 
+  // Solo genera la carta y abre la oferta; el estado no cambia hasta
+  // que el usuario marque "Postulada" explícitamente.
   async function prepare() {
     setBusy(true);
     setError(null);
     try {
       const letter = await generateCoverLetter(job.id);
       setCover(letter);
-      await updateStatus(job.id, 'applying');
       window.open(job.url, '_blank', 'noopener');
-      onChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

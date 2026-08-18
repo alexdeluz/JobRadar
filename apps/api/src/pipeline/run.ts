@@ -79,16 +79,25 @@ export async function runScrape(options: ScrapeOptions): Promise<ScrapeSummary> 
     }
   }
 
-  // Clasifica todas las pendientes (incluye las que quedaron de runs anteriores).
+  // Clasifica todas las pendientes (incluye las que quedaron de runs
+  // anteriores), con concurrencia limitada para no tardar una eternidad
+  // ni gatillar rate limits.
   const pending = listJobs(db, { status: 'pending_classification' });
-  for (const job of pending) {
-    try {
-      const classification = await classify(job);
-      setClassification(db, job.id, classification);
-      summary.classified++;
-    } catch (err) {
-      log(`[classify] ${job.title}: ${err instanceof Error ? err.message : String(err)}`);
+  const queue = [...pending];
+  const worker = async () => {
+    for (let job = queue.shift(); job !== undefined; job = queue.shift()) {
+      try {
+        const classification = await classify(job);
+        setClassification(db, job.id, classification);
+        summary.classified++;
+        if (summary.classified % 25 === 0) {
+          log(`[classify] ${summary.classified}/${pending.length}`);
+        }
+      } catch (err) {
+        log(`[classify] ${job.title}: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
-  }
+  };
+  await Promise.all(Array.from({ length: 4 }, worker));
   return summary;
 }
