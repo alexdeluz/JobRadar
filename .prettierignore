@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+apps/api/test/fixtures/
+dist/
+coverage/
+data/
