@@ -178,7 +178,7 @@ export function getJob(db: JobRadarDb, jobId: number): StoredJob | null {
 
 export function listJobs(
   db: JobRadarDb,
-  filter: { status?: JobStatus | JobStatus[]; category?: string } = {},
+  filter: { status?: JobStatus | JobStatus[] | undefined; category?: string | undefined } = {},
 ): StoredJob[] {
   const clauses: string[] = [];
   const params: unknown[] = [];
