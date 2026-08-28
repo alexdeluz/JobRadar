@@ -1,4 +1,6 @@
 import { config } from './config.js';
+import { ATS_COMPANIES } from './scrapers/ats-companies.js';
+import { createAtsSource } from './scrapers/ats.js';
 import { createChiletrabajosSource } from './scrapers/chiletrabajos.js';
 import { createComputrabajoSource } from './scrapers/computrabajo.js';
 import { createGetonbrdSource } from './scrapers/getonbrd.js';
@@ -12,5 +14,6 @@ export function createSources(): JobSource[] {
     createChiletrabajosSource(),
     createComputrabajoSource(),
     createTrabajandoSource(),
+    createAtsSource({ companies: ATS_COMPANIES }),
   ];
 }

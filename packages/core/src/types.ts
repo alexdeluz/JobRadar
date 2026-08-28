@@ -1,5 +1,5 @@
 /** Identificador de cada portal soportado. */
-export type SourceName = 'getonbrd' | 'chiletrabajos' | 'computrabajo' | 'trabajando';
+export type SourceName = 'getonbrd' | 'chiletrabajos' | 'computrabajo' | 'trabajando' | 'ats';
 
 export type RemoteModality = 'remote' | 'hybrid' | 'onsite';
 
