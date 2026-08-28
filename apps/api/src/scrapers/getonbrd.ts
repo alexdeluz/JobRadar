@@ -25,8 +25,24 @@ interface GetonbrdPage {
   meta: { page: number; total_pages: number };
 }
 
+/**
+ * Etiquetas que en pantalla ocupan su propia línea. Sin marcarlas, `.text()`
+ * de cheerio concatena sus textos y produce "3 remotoUbicación: Las Condes",
+ * que llega así al clasificador.
+ */
+const BLOCK_TAGS =
+  'p, div, li, ul, ol, h1, h2, h3, h4, h5, h6, tr, section, article, blockquote, pre';
+
+/** Convierte el HTML de una descripción a texto plano, respetando los bloques. */
 export function htmlToText(html: string): string {
-  return load(html).text().replace(/\s+\n/g, '\n').trim();
+  const $ = load(html);
+  $('br').replaceWith('\n');
+  $(BLOCK_TAGS).append('\n');
+  return $.text()
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ ?\n ?/g, '\n')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
 }
 
 function mapRemote(remote: boolean, modality: string | null): RemoteModality {

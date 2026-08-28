@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { normalizeGetonbrdJob, type GetonbrdJobEntry } from '../src/scrapers/getonbrd.js';
+import {
+  htmlToText,
+  normalizeGetonbrdJob,
+  type GetonbrdJobEntry,
+} from '../src/scrapers/getonbrd.js';
 
 const fixture = JSON.parse(
   readFileSync(new URL('./fixtures/getonbrd-jobs.json', import.meta.url), 'utf-8'),
@@ -54,5 +58,29 @@ describe('normalizeGetonbrdJob', () => {
   it('usa los países como ubicación', () => {
     const job = normalizeGetonbrdJob(first);
     expect(job.location).toBe('Remote');
+  });
+});
+
+describe('htmlToText', () => {
+  it('separa los bloques con salto de línea en vez de pegarlos', () => {
+    const html = '<p>2 días presencial / 3 remoto</p><p>Ubicación: Las Condes</p>';
+    expect(htmlToText(html)).toBe('2 días presencial / 3 remoto\nUbicación: Las Condes');
+  });
+
+  it('convierte <br> en salto de línea', () => {
+    expect(htmlToText('Requisitos:<br>Node y React')).toBe('Requisitos:\nNode y React');
+  });
+
+  it('separa los items de una lista', () => {
+    expect(htmlToText('<ul><li>C#</li><li>SQL Server</li></ul>')).toBe('C#\nSQL Server');
+  });
+
+  it('no deja saltos ni espacios de más entre bloques', () => {
+    const html = '<div><p>Uno</p>\n\n  <p>  Dos  </p></div>';
+    expect(htmlToText(html)).toBe('Uno\nDos');
+  });
+
+  it('deja intacto el texto sin etiquetas', () => {
+    expect(htmlToText('Desarrollador .NET')).toBe('Desarrollador .NET');
   });
 });

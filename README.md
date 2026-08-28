@@ -10,7 +10,8 @@ Radar personal de ofertas laborales para portales chilenos: scrapea, deduplica, 
 fuentes ─▶ normalize ─▶ dedup ─▶ reglas keywords ─▶ Claude Haiku ─▶ SQLite ─▶ dashboard
 ```
 
-- **Fuentes v1**: [Get on Board](https://www.getonbrd.com/api-doc.html) (API JSON oficial), Chiletrabajos y Computrabajo (HTML server-rendered con cheerio, throttle y user-agent de navegador; el detalle se baja solo para ofertas que pasan el pre-filtro).
+- **Fuentes**: [Get on Board](https://www.getonbrd.com/api-doc.html) (API JSON oficial), Chiletrabajos y Computrabajo (HTML server-rendered con cheerio, throttle y user-agent de navegador; el detalle se baja solo para ofertas que pasan el pre-filtro) y Trabajando.cl (sitemap de ofertas + JSON-LD del detalle).
+- **Trabajando vía sitemap**: `sitemap-ofertas.xml` trae las ~11k ofertas vigentes en una sola request, con `lastmod` por oferta y el título dentro del slug. Eso permite filtrar por ventana de días y aplicar el pre-filtro de keywords **sin tocar la red**; solo las que pasan ambos filtros bajan su detalle (~6 por barrido diario, ~20 s).
 - **Dedup en dos niveles**: `(source, source_id)` para re-scrapes y un _fingerprint_ de título+empresa normalizados para la misma oferta publicada en varios portales (queda una sola entrada con links extra).
 - **Clasificación híbrida**: un filtro determinista por keywords descarta lo obviamente irrelevante gratis; Claude Haiku clasifica el resto en `dotnet` (mi stack fuerte) o `js_transition` (roles JS/TS accesibles en transición), con score 0-100, razones y red flags.
 - **Semi-auto apply**: "Preparar postulación" genera una carta adaptada a la oferta desde `data/profile.md`, marca la oferta y abre el formulario del portal — la envío yo. Nada postula solo.
@@ -48,5 +49,5 @@ Los parsers se testean contra fixtures HTML/JSON reales guardadas en `apps/api/t
 ## Decisiones
 
 - **Corre local, no en la nube**: Computrabajo bloquea IPs de datacenter (verificado); desde IP residencial con throttle bajo funciona. Las ofertas viven días o semanas, así que un barrido diario no pierde nada.
-- **Fase 2**: Trabajando.com (vía sitemap), RemoteOK/WeWorkRemotely (remoto LATAM), Laborum (requiere headless), prefill de formularios con Playwright.
-- **Descartados**: LinkedIn e Indeed (anti-bot agresivo), BNE (ClaveÚnica), El Mercurio (poco volumen tech).
+- **Fase 2**: ATS por empresa (Greenhouse/Lever/Ashby exponen JSON público y estable), Remotive/Himalayas/WeWorkRemotely (remoto LATAM), Laborum (requiere headless), prefill de formularios con Playwright.
+- **Descartados**: LinkedIn e Indeed (anti-bot agresivo), BNE (ClaveÚnica), El Mercurio (poco volumen tech), Empleos Públicos (su `robots.txt` es `Disallow: /` salvo `/pub/`, y justo el endpoint del listado queda fuera; además de 278 convocatorias abiertas solo 2 son del área Informática y ninguna de desarrollo).
