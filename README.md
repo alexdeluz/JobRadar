@@ -47,6 +47,8 @@ data/           CVs, profile.md (perfil para el LLM) y jobradar.db (gitignored)
 
 Los parsers se testean contra fixtures HTML/JSON reales guardadas en `apps/api/test/fixtures/` — la suite nunca golpea la red.
 
+> **Al guardar una fixture HTML, sacá los `<script>` que el parser no use.** Una página real trae el JS de configuración del portal, y ahí viajan claves de terceros (Google Maps, reCAPTCHA, analytics) que no tienen por qué terminar en este repo: GitHub las detecta y abre una alerta de secreto. Para las fixtures de detalle alcanza con conservar el bloque `application/ld+json`.
+
 ## Decisiones
 
 - **Corre local, no en la nube**: Computrabajo bloquea IPs de datacenter (verificado); desde IP residencial con throttle bajo funciona. Las ofertas viven días o semanas, así que un barrido diario no pierde nada.
