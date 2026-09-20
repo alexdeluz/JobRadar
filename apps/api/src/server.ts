@@ -87,7 +87,7 @@ if (process.argv[1]?.endsWith('server.ts')) {
     try {
       await runScrape({
         db,
-        sources: createSources(),
+        sources: createSources(db),
         classify: createClassifier(),
         log: (message) => console.log(message),
       });

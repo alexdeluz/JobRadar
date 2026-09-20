@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyRules } from './rules.js';
+import { applyRules, TITLE_PREFILTER_KEYWORDS } from './rules.js';
 
 function job(title: string, description = '') {
   return { title, description };
@@ -47,5 +47,31 @@ describe('applyRules', () => {
       job('Desarrollador C#', 'Dominio de C# avanzado. C# es excluyente.'),
     );
     expect(verdict.matched.filter((k) => k === 'c#')).toHaveLength(1);
+  });
+
+  it('reconoce "back end" y "full-stack" escritos con espacio o guion', () => {
+    expect(applyRules({ title: 'Desarrollador Back End', description: '' }).passed).toBe(true);
+    expect(applyRules({ title: 'Senior Full-Stack Engineer', description: '' }).passed).toBe(true);
+  });
+});
+
+describe('TITLE_PREFILTER_KEYWORDS', () => {
+  const passes = (title: string) =>
+    applyRules({ title, description: '' }, TITLE_PREFILTER_KEYWORDS).passed;
+
+  it('deja pasar títulos genéricos de desarrollo que no nombran el stack', () => {
+    expect(passes('Analista Programador')).toBe(true);
+    expect(passes('Ingeniero de Software')).toBe(true);
+    expect(passes('Desarrolladores para banca')).toBe(true);
+    expect(passes('TI Developer')).toBe(true);
+  });
+
+  it('sigue incluyendo los keywords técnicos', () => {
+    expect(passes('Especialista .NET')).toBe(true);
+  });
+
+  it('descarta títulos de otros rubros', () => {
+    expect(passes('Técnico/Auxiliar de Farmacia')).toBe(false);
+    expect(passes('Operador Grúa Horquilla')).toBe(false);
   });
 });

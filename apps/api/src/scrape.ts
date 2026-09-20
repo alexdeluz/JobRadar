@@ -7,7 +7,7 @@ import { config } from './config.js';
 const db = createDb(config.dbPath);
 const summary = await runScrape({
   db,
-  sources: createSources(),
+  sources: createSources(db),
   classify: createClassifier(),
   log: (message) => console.log(message),
 });

@@ -1,5 +1,10 @@
 import { load } from 'cheerio';
-import { applyRules, fingerprint, type NormalizedJob } from '@jobradar/core';
+import {
+  applyRules,
+  fingerprint,
+  TITLE_PREFILTER_KEYWORDS,
+  type NormalizedJob,
+} from '@jobradar/core';
 import type { JobSource } from './types.js';
 import { htmlToText } from './getonbrd.js';
 import { fetchWithThrottle } from './http.js';
@@ -124,7 +129,8 @@ export function createTrabajandoSource(
         // Ventana: el barrido es diario, no hace falta revisitar el archivo completo.
         if (daysBetween(entry.lastmod, now) >= windowDays) continue;
         // Pre-filtro barato: el slug ya trae el título, así que filtra sin red.
-        if (!applyRules({ title: entry.title, description: '' }).passed) continue;
+        const prefilter = { title: entry.title, description: '' };
+        if (!applyRules(prefilter, TITLE_PREFILTER_KEYWORDS).passed) continue;
         const detail = parseTrabajandoDetail(await fetchPage(entry.url));
         jobs.push({
           source: 'trabajando',

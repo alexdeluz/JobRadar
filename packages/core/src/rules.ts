@@ -22,9 +22,31 @@ export const TECH_KEYWORDS: readonly string[] = [
   'next.js',
   'fullstack',
   'full stack',
+  'full-stack',
   'backend',
+  'back end',
+  'back-end',
   'front end',
   'frontend',
+];
+
+/**
+ * Keywords para el pre-filtro por título de los portales donde cada detalle
+ * cuesta una request. Más amplio que TECH_KEYWORDS a propósito: muchos títulos
+ * ("Analista Programador", "Ingeniero de Software") no nombran el stack, y el
+ * veredicto real lo dan después las reglas completas sobre la descripción.
+ */
+export const TITLE_PREFILTER_KEYWORDS: readonly string[] = [
+  ...TECH_KEYWORDS,
+  'desarrollador',
+  'desarrolladora',
+  'desarrolladores',
+  'programador',
+  'programadora',
+  'programadores',
+  'developer',
+  'developers',
+  'software',
 ];
 
 function normalize(text: string): string {

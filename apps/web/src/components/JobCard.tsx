@@ -6,7 +6,13 @@ const SOURCE_LABELS: Record<string, string> = {
   getonbrd: 'Get on Board',
   chiletrabajos: 'Chiletrabajos',
   computrabajo: 'Computrabajo',
+  trabajando: 'Trabajando',
+  ats: 'Sitio de la empresa',
+  linkedin: 'LinkedIn',
 };
+
+/** Fuentes que solo se recopilan y enlazan: sin carta ni flujo de postulación. */
+const READ_ONLY_SOURCES = new Set(['linkedin']);
 
 export function JobCard({ job, onChanged }: { job: Job; onChanged: () => void }) {
   const [cover, setCover] = useState<string | null>(job.coverLetter);
@@ -88,14 +94,20 @@ export function JobCard({ job, onChanged }: { job: Job; onChanged: () => void })
         )}
 
         <div className="actions">
-          <button
-            className="primary"
-            disabled={busy}
-            onClick={() => void prepare()}
-            title="Genera la carta y abre la oferta para postular"
-          >
-            Preparar postulación
-          </button>
+          {READ_ONLY_SOURCES.has(job.source) ? (
+            <a className="btn primary" href={job.url} target="_blank" rel="noreferrer">
+              Ver en {SOURCE_LABELS[job.source] ?? job.source}
+            </a>
+          ) : (
+            <button
+              className="primary"
+              disabled={busy}
+              onClick={() => void prepare()}
+              title="Genera la carta y abre la oferta para postular"
+            >
+              Preparar postulación
+            </button>
+          )}
           {job.status !== 'applied' && (
             <button disabled={busy} onClick={() => void act(() => updateStatus(job.id, 'applied'))}>
               Marcar postulada

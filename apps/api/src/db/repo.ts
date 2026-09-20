@@ -209,6 +209,16 @@ export function recordRun(db: JobRadarDb, run: RunRecord): void {
   ).run(run);
 }
 
+/** Fin del último barrido sin error de una fuente; null si nunca tuvo uno. */
+export function lastSuccessfulRunAt(db: JobRadarDb, source: SourceName): string | null {
+  const row = db
+    .prepare(
+      'SELECT finished_at FROM runs WHERE source = ? AND error IS NULL ORDER BY id DESC LIMIT 1',
+    )
+    .get(source) as { finished_at: string } | undefined;
+  return row?.finished_at ?? null;
+}
+
 export function listRuns(db: JobRadarDb, limit = 50): (RunRecord & { id: number })[] {
   const rows = db.prepare('SELECT * FROM runs ORDER BY id DESC LIMIT ?').all(limit) as {
     id: number;

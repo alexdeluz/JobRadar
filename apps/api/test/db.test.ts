@@ -1,7 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fingerprint, type NormalizedJob } from '@jobradar/core';
 import { createDb, type JobRadarDb } from '../src/db/index.js';
-import { listJobs, listRuns, recordRun, setStatus, upsertJobs } from '../src/db/repo.js';
+import {
+  lastSuccessfulRunAt,
+  listJobs,
+  listRuns,
+  recordRun,
+  setStatus,
+  upsertJobs,
+} from '../src/db/repo.js';
 
 function makeJob(overrides: Partial<NormalizedJob> = {}): NormalizedJob {
   const title = overrides.title ?? 'Desarrollador .NET Senior';
@@ -88,5 +95,25 @@ describe('repositorio de jobs', () => {
     expect(runs[0]!.source).toBe('getonbrd');
     expect(runs[0]!.inserted).toBe(5);
     expect(runs[0]!.error).toBeNull();
+  });
+
+  it('devuelve el fin del último barrido sano de una fuente, ignorando los fallidos', () => {
+    expect(lastSuccessfulRunAt(db, 'computrabajo')).toBeNull();
+    const run = {
+      source: 'computrabajo' as const,
+      startedAt: '2026-09-09T11:56:00.000Z',
+      fetched: 0,
+      inserted: 0,
+    };
+    recordRun(db, { ...run, finishedAt: '2026-09-09T11:57:00.000Z', error: null });
+    recordRun(db, { ...run, finishedAt: '2026-09-10T11:57:00.000Z', error: 'HTTP 403' });
+    recordRun(db, {
+      ...run,
+      source: 'getonbrd',
+      finishedAt: '2026-09-11T11:57:00.000Z',
+      error: null,
+    });
+
+    expect(lastSuccessfulRunAt(db, 'computrabajo')).toBe('2026-09-09T11:57:00.000Z');
   });
 });

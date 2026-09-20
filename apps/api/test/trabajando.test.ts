@@ -85,8 +85,8 @@ describe('createTrabajandoSource', () => {
     const { source, fetched } = sourceWithSpy();
     const jobs = await source.fetchListings();
 
-    expect(jobs.map((job) => job.sourceId)).toEqual(['6118051', '6117381']);
-    expect(fetched).toHaveLength(3); // sitemap + 2 detalles
+    expect(jobs.map((job) => job.sourceId)).toEqual(['6118051', '6117456', '6117381']);
+    expect(fetched).toHaveLength(4); // sitemap + 3 detalles
   });
 
   it('descarta ofertas cuyo lastmod cae fuera de la ventana', async () => {

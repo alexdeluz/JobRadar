@@ -1,5 +1,10 @@
 import { load } from 'cheerio';
-import { applyRules, fingerprint, type NormalizedJob } from '@jobradar/core';
+import {
+  applyRules,
+  fingerprint,
+  TITLE_PREFILTER_KEYWORDS,
+  type NormalizedJob,
+} from '@jobradar/core';
 import type { JobSource } from './types.js';
 import { htmlToText } from './getonbrd.js';
 import { fetchWithThrottle } from './http.js';
@@ -11,6 +16,32 @@ export interface ChiletrabajosListingItem {
   company: string | null;
   location: string | null;
   snippet: string;
+  /** Fecha de la card en ISO (YYYY-MM-DD); null si no se reconoce. */
+  publishedAt: string | null;
+}
+
+const MONTHS = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
+
+/** Convierte "18 de Agosto de 2026" a "2026-08-18". */
+export function parseChiletrabajosDate(text: string): string | null {
+  const match = /(\d{1,2}) de ([a-záéíóú]+) de (\d{4})/i.exec(text);
+  if (match === null) return null;
+  const month = MONTHS.indexOf(match[2]!.toLowerCase().replace('setiembre', 'septiembre'));
+  if (month === -1) return null;
+  return `${match[3]}-${String(month + 1).padStart(2, '0')}-${match[1]!.padStart(2, '0')}`;
 }
 
 export interface ChiletrabajosDetail {
@@ -49,6 +80,7 @@ export function parseChiletrabajosListing(html: string): ChiletrabajosListingIte
       company: company === '' ? null : company,
       location: location === '' ? null : location,
       snippet,
+      publishedAt: parseChiletrabajosDate($(card).find('h3.meta .fa-calendar').parent().text()),
     });
   });
   return items;
@@ -87,30 +119,50 @@ export function parseChiletrabajosDetail(html: string): ChiletrabajosDetail {
 }
 
 const BASE = 'https://www.chiletrabajos.cl';
+const PAGE_SIZE = 30;
+const DAY_MS = 86_400_000;
 
 /**
- * Fuente Chiletrabajos: listado de la categoría informática (SSR clásico).
- * Baja el detalle solo de las ofertas que pasan el pre-filtro de reglas,
- * con throttle para no castigar al sitio.
+ * Fuente Chiletrabajos: listado de la categoría informática (SSR clásico),
+ * paginado por offset en la ruta (`/informatica/30`, `/60`…; el sitio ignora
+ * `?page=`). Avanza mientras la página traiga ofertas dentro de la ventana de
+ * días y baja el detalle solo de las recientes que pasan el pre-filtro, con
+ * throttle para no castigar al sitio.
  */
 export function createChiletrabajosSource(
-  options: { pages?: number; fetchPage?: (url: string) => Promise<string> } = {},
+  options: {
+    windowDays?: number;
+    maxPages?: number;
+    now?: Date;
+    fetchPage?: (url: string) => Promise<string>;
+  } = {},
 ): JobSource {
-  const pages = options.pages ?? 3;
+  const windowDays = options.windowDays ?? 7;
+  const maxPages = options.maxPages ?? 8;
   const fetchPage = options.fetchPage ?? fetchWithThrottle(3000);
   return {
     name: 'chiletrabajos',
     async fetchListings() {
+      const now = options.now ?? new Date();
+      const isRecent = (publishedAt: string | null): boolean =>
+        // Una fecha ilegible cuenta como reciente: mejor bajar de más que perderla.
+        publishedAt === null || (now.getTime() - Date.parse(publishedAt)) / DAY_MS <= windowDays;
       const jobs: NormalizedJob[] = [];
-      for (let page = 1; page <= pages; page++) {
-        const url = `${BASE}/trabajos/informatica${page > 1 ? `?page=${page}` : ''}`;
+      const seen = new Set<string>();
+      for (let page = 0; page < maxPages; page++) {
+        const url = `${BASE}/trabajos/informatica${page > 0 ? `/${page * PAGE_SIZE}` : ''}`;
         const items = parseChiletrabajosListing(await fetchPage(url));
-        if (items.length === 0 && page === 1) {
+        if (items.length === 0 && page === 0) {
           throw new Error('Listado de Chiletrabajos sin cards .job-item (¿cambió el HTML?)');
         }
-        for (const item of items) {
-          // Pre-filtro barato: solo baja el detalle si título+snippet aluden al stack.
-          if (!applyRules({ title: item.title, description: item.snippet }).passed) continue;
+        const recent = items.filter((item) => isRecent(item.publishedAt));
+        for (const item of recent) {
+          // Las destacadas se repiten entre páginas.
+          if (seen.has(item.sourceId)) continue;
+          seen.add(item.sourceId);
+          // Pre-filtro barato: solo baja el detalle si título+snippet aluden a desarrollo.
+          const prefilter = { title: item.title, description: item.snippet };
+          if (!applyRules(prefilter, TITLE_PREFILTER_KEYWORDS).passed) continue;
           const detail = parseChiletrabajosDetail(await fetchPage(item.url));
           jobs.push({
             source: 'chiletrabajos',
@@ -124,11 +176,11 @@ export function createChiletrabajosSource(
             salaryCurrency: detail.salaryMin !== null ? 'CLP' : null,
             remote: null,
             description: detail.description !== '' ? detail.description : item.snippet,
-            publishedAt: detail.publishedAt,
+            publishedAt: detail.publishedAt ?? item.publishedAt,
             fingerprint: fingerprint(item.title, item.company),
           });
         }
-        if (items.length === 0) break;
+        if (recent.length === 0) break;
       }
       return jobs;
     },
