@@ -1,11 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import {
-  ATS_ADAPTERS,
-  createAtsSource,
-  type AtsCompany,
-  isChileanOrUnspecified,
-} from '../src/scrapers/ats.js';
+import { ATS_ADAPTERS, createAtsSource, type AtsCompany } from '../src/scrapers/ats.js';
+import { isChileanOrUnspecified } from '../src/scrapers/location.js';
 
 function fixture(name: string): unknown {
   return JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf-8'));

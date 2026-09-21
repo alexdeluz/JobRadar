@@ -1,6 +1,7 @@
 import { load } from 'cheerio';
 import { fingerprint, type NormalizedJob, type RemoteModality } from '@jobradar/core';
 import type { JobSource } from './types.js';
+import { isChileanOrUnspecified } from './location.js';
 
 /** Forma relevante de una entrada de /api/v0/.../jobs con expand=["company"]. */
 export interface GetonbrdJobEntry {
@@ -79,7 +80,8 @@ export function normalizeGetonbrdJob(entry: GetonbrdJobEntry): NormalizedJob {
 const API_BASE = 'https://www.getonbrd.com/api/v0';
 
 /**
- * Fuente Get on Board: usa la API JSON pública oficial (sin auth).
+ * Fuente Get on Board: usa la API JSON pública oficial (sin auth) y se queda
+ * con las ofertas de Chile o remotas sin país.
  * Docs: https://getonbrd.com/api-doc.html
  */
 export function createGetonbrdSource(options: { maxPages?: number } = {}): JobSource {
@@ -98,7 +100,8 @@ export function createGetonbrdSource(options: { maxPages?: number } = {}): JobSo
         jobs.push(...body.data.map(normalizeGetonbrdJob));
         if (body.meta.page >= body.meta.total_pages || body.data.length === 0) break;
       }
-      return jobs;
+      // La categoría es de toda LATAM: fuera Perú, México, etc. Las remotas sin país se quedan.
+      return jobs.filter((job) => isChileanOrUnspecified(job.location));
     },
   };
 }

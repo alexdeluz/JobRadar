@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  createGetonbrdSource,
   htmlToText,
   normalizeGetonbrdJob,
   type GetonbrdJobEntry,
@@ -82,5 +83,32 @@ describe('htmlToText', () => {
 
   it('deja intacto el texto sin etiquetas', () => {
     expect(htmlToText('Desarrollador .NET')).toBe('Desarrollador .NET');
+  });
+});
+
+describe('createGetonbrdSource', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('descarta las ofertas de otros países y conserva Chile y remotas sin país', async () => {
+    const entry = (id: string, countries: string[]): GetonbrdJobEntry => ({
+      ...first,
+      id,
+      attributes: { ...first.attributes, countries },
+    });
+    const page = {
+      data: [
+        entry('chile', ['Chile']),
+        entry('peru', ['Peru']),
+        entry('remota', ['Remote']),
+        entry('mixta', ['Peru', 'Chile']),
+        entry('mexico', ['Mexico']),
+      ],
+      meta: { page: 1, total_pages: 1 },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(page))));
+
+    const jobs = await createGetonbrdSource({ maxPages: 1 }).fetchListings();
+
+    expect(jobs.map((job) => job.sourceId)).toEqual(['chile', 'remota', 'mixta']);
   });
 });
