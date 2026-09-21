@@ -179,10 +179,29 @@ const CHILE_MARKERS = [
 ];
 
 /**
- * Ubicaciones sin país: el board dice "remoto" pero no dónde, así que la
- * oferta sigue siendo candidata y la decide el clasificador.
+ * Palabras que no nombran un lugar: si tras quitarlas no queda nada, el board
+ * dice "remoto" pero no dónde, y la oferta sigue siendo candidata.
  */
-const UNSPECIFIED_MARKERS = ['remote', 'remoto', 'latam', 'latin america', 'anywhere'];
+const GENERIC_WORDS = new Set([
+  'remote',
+  'remoto',
+  'remota',
+  'latam',
+  'latin',
+  'america',
+  'latinoamerica',
+  'anywhere',
+  'any',
+  'location',
+  'fully',
+  'international',
+  'worldwide',
+  'global',
+  'or',
+  'and',
+  'o',
+  'y',
+]);
 
 function normalizeLocation(location: string | null): string {
   return (location ?? '')
@@ -192,14 +211,16 @@ function normalizeLocation(location: string | null): string {
 }
 
 /**
- * Los boards regionales publican también en México, Brasil y Argentina.
- * Se conservan las de Chile y las que no declaran país; el resto se descarta.
+ * Los boards regionales publican también en México, Brasil, Polonia o Turquía.
+ * Se conservan las de Chile y las que no declaran lugar; el resto se descarta.
  */
 export function isChileanOrUnspecified(location: string | null): boolean {
   const text = normalizeLocation(location);
-  if (text === '') return true;
   if (CHILE_MARKERS.some((marker) => text.includes(marker))) return true;
-  return UNSPECIFIED_MARKERS.some((marker) => text.includes(marker));
+  // Lista blanca, no negra: "Poland, Remote" o "Türkiye, Remote" dejan una
+  // palabra que nombra un lugar, y eso alcanza para descartar sin conocer el país.
+  const rest = text.split(/[^a-z]+/).filter((word) => word !== '' && !GENERIC_WORDS.has(word));
+  return rest.length === 0;
 }
 
 async function fetchJsonWithUa(url: string): Promise<unknown> {

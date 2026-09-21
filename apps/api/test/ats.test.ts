@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ATS_ADAPTERS, createAtsSource, type AtsCompany } from '../src/scrapers/ats.js';
+import {
+  ATS_ADAPTERS,
+  createAtsSource,
+  type AtsCompany,
+  isChileanOrUnspecified,
+} from '../src/scrapers/ats.js';
 
 function fixture(name: string): unknown {
   return JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf-8'));
@@ -128,5 +133,32 @@ describe('createAtsSource', () => {
     const dead = (): Promise<unknown> => Promise.reject(new Error('HTTP 404'));
 
     await expect(sourceWith(dead).fetchListings()).rejects.toThrow(/ning[uú]n board/i);
+  });
+});
+
+describe('isChileanOrUnspecified', () => {
+  it('conserva Chile y las ubicaciones sin país', () => {
+    expect(isChileanOrUnspecified('Santiago, Región Metropolitana, Chile')).toBe(true);
+    expect(isChileanOrUnspecified('Remote')).toBe(true);
+    expect(isChileanOrUnspecified('LATAM')).toBe(true);
+    expect(isChileanOrUnspecified(null)).toBe(true);
+    expect(isChileanOrUnspecified('Latin America')).toBe(true);
+    expect(isChileanOrUnspecified('Remote - International')).toBe(true);
+    expect(isChileanOrUnspecified('Any Location')).toBe(true);
+  });
+
+  it('descarta "remoto" cuando el board nombra otro país', () => {
+    expect(isChileanOrUnspecified('Remote @ Mexico')).toBe(false);
+    expect(isChileanOrUnspecified('Argentina - Fully Remote')).toBe(false);
+    expect(isChileanOrUnspecified('Remote - LATAM - MEX')).toBe(false);
+    expect(isChileanOrUnspecified('Colombia, Remote')).toBe(false);
+    expect(isChileanOrUnspecified('Remote — United States')).toBe(false);
+    expect(isChileanOrUnspecified('Poland, Remote')).toBe(false);
+    expect(isChileanOrUnspecified('Türkiye, Remote')).toBe(false);
+    expect(isChileanOrUnspecified('Netherlands, Remote')).toBe(false);
+  });
+
+  it('Chile gana aunque la oferta liste varios países', () => {
+    expect(isChileanOrUnspecified('Remote @ Chile or Colombia')).toBe(true);
   });
 });

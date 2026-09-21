@@ -14,8 +14,23 @@ import type { AtsCompany } from './ats.js';
  * queda el aviso en el log del run.
  */
 export const ATS_COMPANIES: readonly AtsCompany[] = [
+  // Chilenas
   // Toku también tiene board en Lever, pero el vigente es el de Ashby.
   { provider: 'ashby', slug: 'toku', company: 'Toku' },
   { provider: 'lever', slug: 'xepelin', company: 'Xepelin' },
   { provider: 'lever', slug: 'fintual', company: 'Fintual' },
+  { provider: 'lever', slug: '2brains', company: '2Brains' },
+  // Con equipo en Chile
+  // Checkr publica su hub de Santiago en un board aparte, con slug "chile".
+  { provider: 'greenhouse', slug: 'chile', company: 'Checkr' },
+  { provider: 'greenhouse', slug: 'sezzle', company: 'Sezzle' },
+  { provider: 'greenhouse', slug: 'speechify', company: 'Speechify' },
+  { provider: 'lever', slug: 'coderio', company: 'Coderio' },
+  { provider: 'ashby', slug: 'canals', company: 'Canals' },
+  // Consultoras que contratan remoto en LATAM (Lever distingue mayúsculas en el slug)
+  { provider: 'lever', slug: 'bluelightconsulting', company: 'Bluelight Consulting' },
+  { provider: 'lever', slug: 'Ubiminds', company: 'Ubiminds' },
+  { provider: 'greenhouse', slug: 'praxent', company: 'Praxent' },
+  { provider: 'greenhouse', slug: 'arionkoder', company: 'Arionkoder' },
+  { provider: 'ashby', slug: 'g2i', company: 'G2i' },
 ];
